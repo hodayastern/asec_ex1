@@ -10,9 +10,18 @@ Z = 4  # bucket size
 BLOCK_SIZE = 4  # each data block is 4 characters
 
 
+def compute_hmac(key: bytes, msg: bytes) -> bytes:
+    h = HMAC.new(key, digestmod=SHA256)
+    h.update(msg)
+    return h.digest()
+
+
 def encrypt_block(key: bytes, data: bytes) -> bytes:
+    version = get_random_bytes(4)  # 4-byte nonce/version for freshness
+    msg = version + data
+    mac = compute_hmac(key, msg)
     cipher = AES.new(key, AES.MODE_GCM)
-    ciphertext, tag = cipher.encrypt_and_digest(data)
+    ciphertext, tag = cipher.encrypt_and_digest(msg + mac)
     return cipher.nonce + tag + ciphertext
 
 
@@ -21,7 +30,12 @@ def decrypt_block(key: bytes, encrypted_data: bytes) -> bytes:
     tag = encrypted_data[16:32]
     ciphertext = encrypted_data[32:]
     cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
-    return cipher.decrypt_and_verify(ciphertext, tag)
+    msg_mac = cipher.decrypt_and_verify(ciphertext, tag)
+    msg, mac = msg_mac[:-32], msg_mac[-32:]
+    expected_mac = compute_hmac(key, msg)
+    if not HMAC.compare_digest(mac, expected_mac):
+        raise ValueError("HMAC verification failed")
+    return msg[4:]  # strip version
 
 
 class Block:
@@ -84,7 +98,7 @@ class Client:
                     block = Block.deserialize(raw)
                     self.stash.append(block)
                 except (ValueError, KeyError):
-                    continue  # Ignore decryption failures (dummy blocks)
+                    continue  # Ignore decryption or HMAC failures
             bucket.blocks.clear()
 
     def _write_path(self, server: Server, leaf: int):
@@ -145,3 +159,4 @@ class Client:
 # Implementation follows the Path ORAM protocol from:
 # "Path ORAM: An Extremely Simple Oblivious RAM Protocol" by Stefanov et al.
 # Specifically based on the Access(op, a, data*) pseudocode in Figure 1.
+# This version adds integrity protection using HMAC to prevent rollback or tampering attacks.
