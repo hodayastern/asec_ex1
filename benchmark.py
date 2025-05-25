@@ -1,6 +1,7 @@
 import time
 import random
 import matplotlib.pyplot as plt
+import numpy as np
 
 from client import Client
 from server import Server
