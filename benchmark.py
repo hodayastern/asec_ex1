@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 from client import Client
 from server import Server
 
+SEED = 42
+
+
 
 def benchmark_oram(num_blocks, num_requests=30):
     client = Client(num_blocks)
@@ -79,5 +82,11 @@ def plot_results(results):
 
 
 if __name__ == "__main__":
+    
+    # Set seed for reproducibility
+    random.seed(SEED)
+    np.random.seed(SEED)
+    print(f"Using random seed: {SEED}")
+
     results = run_benchmarks()
     plot_results(results)
