@@ -9,7 +9,9 @@ class Server:
         self.num_leaves = 2 ** self.tree_height
         self.num_nodes = 2 * self.num_leaves - 1
         self.buckets = [Bucket() for _ in range(self.num_nodes)]  # Full binary tree
+        self.is_initialized = False
 
     def get_bucket(self, node_index: int) -> Bucket:
         return self.buckets[node_index]
+
 

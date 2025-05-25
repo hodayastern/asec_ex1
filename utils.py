@@ -1,3 +1,5 @@
+from hmac import compare_digest
+
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.Hash import HMAC, SHA256
@@ -29,7 +31,7 @@ def decrypt_block(key: bytes, encrypted_data: bytes) -> bytes:
     msg_mac = cipher.decrypt_and_verify(ciphertext, tag)
     msg, mac = msg_mac[:-32], msg_mac[-32:]
     expected_mac = compute_hmac(key, msg)
-    if not HMAC.compare_digest(mac, expected_mac):
+    if not compare_digest(mac, expected_mac):
         raise ValueError("HMAC verification failed")
     return msg[4:]  # strip version
 
