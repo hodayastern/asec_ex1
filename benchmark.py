@@ -33,13 +33,13 @@ def benchmark_oram(num_blocks, num_requests=30):
     return throughput, avg_latency
 
 
-def run_benchmarks():
+def run_benchmarks(num_requests=30):
     sizes = [32, 64, 128, 256, 512, 1024]
     results = []
 
     for N in sizes:
         print(f"Running benchmark for N = {N}...")
-        throughput, latency = benchmark_oram(N)
+        throughput, latency = benchmark_oram(N, num_requests)
         print(f"N = {N}: Throughput = {throughput:.2f} req/sec, Avg Latency = {latency:.2f} ms")
         results.append((N, throughput, latency))
 
