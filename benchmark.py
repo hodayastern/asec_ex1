@@ -1,5 +1,10 @@
+import random
 import time
 import matplotlib.pyplot as plt
+
+from client import Client
+from server import Server
+
 
 def benchmark_oram():
     db_sizes = [2**i for i in range(4, 12)]  # N = 16 to 2048
