@@ -1,0 +1,82 @@
+import time
+import random
+import numpy as np
+import matplotlib.pyplot as plt
+
+from client import Client
+from server import Server
+
+# Configuration
+NUM_REQUESTS = 30
+REPEATS_PER_N = 5
+MIN_EXP = 5  # 2^5 = 32 blocks
+MAX_EXP = 10  # 2^10 = 1024 blocks
+SEED = 42
+
+# Set seed for reproducibility
+random.seed(SEED)
+np.random.seed(SEED)
+print(f"Using random seed: {SEED}")
+
+# Storage for results
+db_sizes = []
+throughputs = []
+latencies = []
+
+for exp in range(MIN_EXP, MAX_EXP + 1):
+    num_blocks = 2 ** exp
+    avg_throughput = 0
+    avg_latency = 0
+
+    for _ in range(REPEATS_PER_N):
+        server = Server(num_blocks)
+        client = Client(num_blocks)
+        latencies_run = []
+
+        start_time = time.perf_counter()
+        for _ in range(NUM_REQUESTS):
+            block_id = random.randint(0, num_blocks - 1)
+            t0 = time.perf_counter()
+            client.retrieve_data(server, block_id)
+            t1 = time.perf_counter()
+            latencies_run.append(t1 - t0)
+        end_time = time.perf_counter()
+
+        run_throughput = NUM_REQUESTS / (end_time - start_time)
+        run_avg_latency = sum(latencies_run) / NUM_REQUESTS
+
+        avg_throughput += run_throughput
+        avg_latency += run_avg_latency
+
+    avg_throughput /= REPEATS_PER_N
+    avg_latency /= REPEATS_PER_N
+
+    db_sizes.append(num_blocks)
+    throughputs.append(avg_throughput)
+    latencies.append(avg_latency)
+
+    print(f"N={num_blocks:4d} | Avg throughput = {avg_throughput:.2f} req/s | "
+          f"Avg latency = {avg_latency * 1000:.2f} ms")
+
+print(f"\nAveraged over {REPEATS_PER_N} runs per DB size, with {NUM_REQUESTS} requests each.")
+
+# Plot: Throughput vs. DB Size
+plt.figure(figsize=(8, 5))
+plt.plot(db_sizes, throughputs, marker='o', linestyle='-', color='blue')
+plt.xscale('log', base=2)
+plt.xlabel("Database Size (N, log scale)")
+plt.ylabel("Throughput (requests/sec)")
+plt.title("Throughput vs. Database Size")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# Plot: Latency vs. Throughput
+plt.figure(figsize=(8, 5))
+plt.plot(throughputs, [lat * 1000 for lat in latencies], marker='x', linestyle='-', color='green')
+plt.xlabel("Throughput (requests/sec)")
+plt.ylabel("Latency (ms/request)")
+plt.title("Latency vs. Throughput")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
