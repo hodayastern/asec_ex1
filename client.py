@@ -69,6 +69,8 @@ class Client:
         """
         if block_id > self.num_blocks:
             raise ValueError(f"ID {block_id} is invalid in this server, insert number up to {self.num_blocks - 1}")
+        if not server.is_initialized:
+            self._fill_server_with_dummies(server)
         old_leaf = self.position_map[block_id]
         self._remap_block(block_id)
         path = self._path(old_leaf)
@@ -157,3 +159,9 @@ class Client:
 
         bucket.blocks = self._fill_bucket(new_bucket_blocks)
         self.stash = remaining_stash
+
+    def _fill_server_with_dummies(self, server):
+        server.is_initialized = True
+        for i in server.num_nodes:
+            bucket = server.get_bucket(i)
+            bucket.blocks = self._fill_bucket()
