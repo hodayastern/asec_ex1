@@ -54,6 +54,3 @@ class Block:
 class Bucket:
     def __init__(self):
         self.blocks = []  # List of encrypted blocks (real or dummy)
-
-    def is_full(self):
-        return len(self.blocks) == Z
