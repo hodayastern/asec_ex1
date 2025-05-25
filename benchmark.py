@@ -64,7 +64,11 @@ def plot_results(results):
 
     # Plot 2: Latency vs. Throughput
     plt.subplot(1, 2, 2)
-    plt.plot(throughputs, latencies, marker='o')
+    
+    sorted_pairs = sorted(zip(throughputs, latencies))
+    throughputs_sorted, latencies_sorted = zip(*sorted_pairs)
+
+    plt.plot(throughputs_sorted, latencies_sorted, marker='o')
     plt.xlabel("Throughput (requests/sec)")
     plt.ylabel("Average Latency (ms)")
     plt.title("Latency vs. Throughput")
