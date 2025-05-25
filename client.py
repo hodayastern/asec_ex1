@@ -162,6 +162,6 @@ class Client:
 
     def _fill_server_with_dummies(self, server):
         server.is_initialized = True
-        for i in server.num_nodes:
+        for i in range(server.num_nodes):
             bucket = server.get_bucket(i)
             bucket.blocks = self._fill_bucket()
